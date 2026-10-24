@@ -1,0 +1,3 @@
+[workspace]
+members = ["kettle_core", "frontend"]
+resolver = "2"

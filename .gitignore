@@ -1,0 +1,19 @@
+# Rust build artifacts
+/target/
+/**/target/
+/debug/
+/release/
+
+# Cargo
+Cargo.lock
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Rust backups
+*.rs.bk

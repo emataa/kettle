@@ -73,6 +73,20 @@ impl Emu{
         self.ram[..FONTSET_SIZE].copy_from_slice(&FONTSET);
     }
 
+    pub fn get_display(&self) -> &[bool]{
+        &self.display
+    }
+
+    pub fn key_press(&mut self, i: usize, pressed: bool){
+        self.keys[i] = pressed;
+    }
+
+    pub fn load(&mut self, data: &[u8]){
+        let start = START_ADDR as usize;
+        let end = (START_ADDR as usize) + data.len();
+        self.ram[start..end].copy_from_slice(data);
+    }
+
     fn push(&mut self, val: u16){
         self.stack[self.sp as usize] = val;
         self.sp += 1;
@@ -396,8 +410,6 @@ impl Emu{
                     self.v_reg[idx] = self.ram[i + idx];
                 }
             },
-
-            
 
 
             (_,_,_,_) => unimplemented!("Unimplemented opcode: {}", op),

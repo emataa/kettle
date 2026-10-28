@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 kettle_core = {path = "../kettle_core"}
+sdl2 = { version = "0.37", features = ["bundled"] }

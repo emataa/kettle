@@ -32,7 +32,6 @@ On macOS:
 
 ```
 brew install sdl2
-export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
 ```
 
 To build SDL2 from source instead, set this in `frontend/Cargo.toml`:
@@ -46,10 +45,9 @@ If CMake 4.x fails with a policy error, prefix the build with `CMAKE_POLICY_VERS
 ## Run
 
 ```
-cargo run --release -- path/to/game.ch8
+cargo run path/to/game.ch8
 ```
 
-The `--` separates cargo's arguments from the ROM path.
 
 ## Controls
 

@@ -2,6 +2,8 @@
 
 A CHIP-8 emulator written in Rust with an SDL2 frontend.
 
+![kettle running Space Invaders](docs/spaceinvader.png)
+
 ## Features
 
 - Full CHIP-8 instruction set
@@ -78,6 +80,7 @@ The frontend runs 10 instructions per frame at vsync, about 600 instructions per
 - Unimplemented opcodes panic.
 
 ## Resources
+
 - [The Rust Programming Language](https://doc.rust-lang.org/book/)
 - [Cowgod's CHIP-8 Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM)
 - [Timendus's CHIP-8 test suite](https://github.com/Timendus/chip8-test-suite)

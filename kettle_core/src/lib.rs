@@ -113,14 +113,15 @@ impl Emu{
         op
     }
 
+    pub fn sound_active(&self) -> bool {
+        self.st > 0
+    }
+
     pub fn tick_timers(&mut self){
         if self.dt > 0 {
             self.dt -=1;
         }
         if self.st > 0 {
-            if self.st == 1{
-                //beep to implement
-            } 
             self.st -= 1;
         }
     }

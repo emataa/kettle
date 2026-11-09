@@ -17,3 +17,6 @@ Thumbs.db
 
 # Rust backups
 *.rs.bk
+
+# Roms
+*.ch8

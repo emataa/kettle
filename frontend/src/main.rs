@@ -8,11 +8,29 @@ use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use sdl2::keyboard::Keycode;
+use sdl2::audio::{AudioCallback, AudioSpecDesired};
 
 const SCALE: u32 = 15;
 const WINDOW_WIDTH: u32 = (DISP_WIDTH as u32) * SCALE;
 const WINDOW_HEIGHT: u32 = (DISP_LEN as u32) * SCALE;
-const TICKS_PER_FRAME: usize = 10;
+const TICKS_PER_FRAME: usize = 8;
+
+struct SquareWave {
+    phase_inc: f32,
+    phase: f32,
+    volume: f32,
+}
+
+impl AudioCallback for SquareWave {
+    type Channel = f32;
+
+    fn callback(&mut self, out: &mut [f32]) {
+        for sample in out.iter_mut() {
+            *sample = if self.phase <= 0.5 { self.volume } else { -self.volume };
+            self.phase = (self.phase + self.phase_inc) % 1.0;
+        }
+    }
+}
 
 fn draw_screen(emu: &Emu, canvas: &mut Canvas<Window>) {
     canvas.set_draw_color(Color::RGB(0, 0, 0));
@@ -62,6 +80,19 @@ fn main() {
     }
 
     let sdl_context = sdl2::init().unwrap();
+    let audio_subsystem = sdl_context.audio().unwrap();
+    let spec = AudioSpecDesired {
+        freq: Some(44100),
+        channels: Some(1),
+        samples: None,
+    };
+    let audio_device = audio_subsystem
+        .open_playback(None, &spec, |spec| SquareWave {
+            phase_inc: 440.0 / spec.freq as f32,
+            phase: 0.0,
+            volume: 0.15,
+        })
+        .unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem
         .window("kettle: A Chip-8 Emulator", WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -102,6 +133,11 @@ fn main() {
         chip8.tick();
        }
         chip8.tick_timers();
+        if chip8.sound_active() {
+            audio_device.resume();
+        } else {
+            audio_device.pause();
+        }
         draw_screen(&chip8, &mut canvas);
     }
 }

@@ -10,18 +10,49 @@ A CHIP-8 emulator written in Rust with an SDL2 frontend.
 - 64x32 display, scaled 15x
 - Keyboard mapped to the 16-key hex keypad
 - 60Hz delay and sound timers
+- Square-wave beep while the sound timer is active
 - Emulator core separated from the frontend
 
-## Structure
+## Components
 
-```
-kettle/
-├── Cargo.toml        workspace root
-├── kettle_core/      emulator core (CPU, memory, display buffer, timers)
-└── frontend/         SDL2 window, input, and rendering
-```
+### Core (`kettle_core`)
 
-`kettle_core` has no window or graphics dependencies, so it can be reused with any renderer.
+The core has no window, audio, or graphics dependencies. The frontend feeds it ROM bytes and key state, and reads back the display and sound state.
+
+**State (`Emu`)**
+
+- **RAM**: 4096 bytes. The font is stored at `0x000` and programs are loaded at `0x200`.
+- **Registers**: sixteen 8-bit registers (`V0` to `VF`) and a 16-bit index register (`I`). `VF` doubles as the carry, borrow, and collision flag.
+- **Program counter (`pc`)**: the address of the next instruction.
+- **Stack and stack pointer**: 16 return addresses, used by call (`2NNN`) and return (`00EE`).
+- **Display**: a 64x32 array of on/off pixels.
+- **Keys**: the pressed state of the 16 keypad keys.
+- **Timers**: a delay timer and a sound timer, each counting down at 60Hz.
+
+**Methods**
+
+- `new()` and `reset()`: set up a fresh emulator with the font loaded.
+- `load(&[u8])`: copies a ROM into RAM starting at `0x200`.
+- `tick()`: runs one instruction by fetching, decoding, and executing it.
+- `tick_timers()`: decrements the delay and sound timers. Call it once per frame.
+- `get_display()`: returns the pixel buffer.
+- `keypress(idx, pressed)`: sets the state of one key.
+- `sound_active()`: returns true while the sound timer is above zero.
+
+**Instruction cycle**
+
+1. **Fetch**: reads two bytes at `pc` and combines them into a 16-bit opcode, then advances `pc` by 2.
+2. **Decode**: splits the opcode into four 4-bit digits and matches on them.
+3. **Execute**: runs the matching instruction, updating registers, memory, display, or `pc`.
+
+### Frontend
+
+- **Window and renderer**: an SDL2 window with a canvas, 15 pixels per CHIP-8 pixel.
+- **Event loop**: polls SDL events once per frame and handles quit, `Esc`, and key presses.
+- **Key mapping**: `key2button` converts keyboard keys to keypad indexes.
+- **Draw**: `draw_screen` clears the canvas and fills a rectangle for each lit pixel.
+- **Audio**: `SquareWave` generates a 440 Hz tone, and SDL calls it on its audio thread whenever it needs samples. The audio device plays while `sound_active()` is true and pauses otherwise.
+- **Main loop**: each frame runs 10 instructions, ticks the timers once, updates the audio, and draws.
 
 ## Requirements
 
@@ -48,7 +79,6 @@ If CMake 4.x fails with a policy error, prefix the build with `CMAKE_POLICY_VERS
 cargo run path/to/game.ch8
 ```
 
-
 ## Controls
 
 ```
@@ -71,11 +101,6 @@ The frontend runs 10 instructions per frame at vsync, about 600 instructions per
 - `8XY6` and `8XYE` shift `VX` in place and ignore `VY`
 - `FX55` and `FX65` leave `I` unchanged
 - `DXYN` wraps each pixel around the screen edges
-
-## Known limitations
-
-- Sound is not implemented. The sound timer counts down but nothing plays.
-- Unimplemented opcodes panic.
 
 ## Resources
 
